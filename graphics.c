@@ -38,6 +38,31 @@ void graphicsInit(void) {
 
     
 }
+void drawPiece(Piece *piece, int x, int y) {
+
+}
+void drawPieces(AppState *state) {
+    Piece *curr = state->usedList->head;
+    while (curr) {
+        drawPiece(curr, curr->xpos, curr->ypos);
+        curr = curr->next;
+    }
+    curr = state->unusedList->head;
+    int x = 0;
+    int y = 128;
+    while (curr) {
+        drawPiece(curr, x, y);
+        x += 16;
+        if (x == 240) {
+            x = 0;
+            y += 16;
+        }
+        curr = curr->next;
+    }
+    if (!state->inStash && state->selectedPiece) {
+        drawPiece(state->selectedPiece, state->selectedPiece->xpos, state->selectedPiece->ypos);
+    }
+}
 // TA-TODO: Add any draw/undraw functions for sub-elements of your app here.
 // For example, for a snake game, you could have a drawSnake function
 // or a drawFood function

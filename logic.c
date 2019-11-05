@@ -10,12 +10,29 @@ void removeFromList(Piece *piece, PieceList *list) {
         prev->next = next;
         if (next) {
             next->prev = prev;
+        } else {
+            list->tail = prev;
         }
     } else if (!next) {
         list->head = NULL;
+        list->tail = NULL;
+    } else {
+        next->prev = NULL;
+        list->head = next;
     }
     piece->prev = NULL;
     piece->next = NULL;
+}
+void addToList(Piece *piece, PieceList *list) {
+    Piece *prev = list->tail;
+    if (!prev) {
+        list->head = piece;
+        list->tail = piece;
+    } else {
+        prev->next = piece;
+        piece->prev = prev;
+        list->tail = piece;
+    }
 }
 void rotatePiece(Piece *piece, int r) {
     switch(piece->type) {
@@ -68,6 +85,8 @@ int isSolved(AppState *currentAppState) {
         }
         type = currentAppState->map[x][y]->type;
         switch (type) {
+            case NONE:
+                return 0;
             case SINK:
                 if (direction == RIGHT) {
                     return 1;
@@ -147,6 +166,84 @@ void initializeAppState(AppState* appState) {
 // state of your application.
 AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 keysPressedNow) {
     AppState nextAppState = *currentAppState;
-    
+    if (currentAppState->inStash) {
+        if (KEY_JUST_PRESSED(BUTTON_RIGHT, keysPressedNow, keysPressedBefore)) {
+            if (currentAppState->selectedPiece && currentAppState->selectedPiece->next) {
+                nextAppState.cursor->xpos += 1;
+                if (nextAppState.cursor->xpos == 15) {
+                    nextAppState.cursor->ypos += 1;
+                    nextAppState.cursor->xpos = 0;
+                }
+                nextAppState.selectedPiece = currentAppState->selectedPiece->next;
+            }
+        } else if (KEY_JUST_PRESSED(BUTTON_LEFT, keysPressedNow, keysPressedBefore)) {
+            if (currentAppState->selectedPiece && currentAppState->selectedPiece->prev) {
+                nextAppState.cursor->xpos -= 1;
+                if (nextAppState.cursor->xpos == -1) {
+                    nextAppState.cursor->ypos -= 1;
+                    nextAppState.cursor->xpos = 14;
+                }
+                nextAppState.selectedPiece = currentAppState->selectedPiece->prev;
+            }
+        } else if (KEY_JUST_PRESSED(BUTTON_A, keysPressedNow, keysPressedBefore)) {
+            nextAppState.inStash = 0;
+            nextAppState.cursor->xpos = 0;
+            nextAppState.cursor->ypos = 0;
+            while (!currentAppState->map[nextAppState.cursor->xpos][nextAppState.cursor->ypos]) {
+                nextAppState.cursor->xpos += 1;
+                if (nextAppState.cursor->xpos == 15) {
+                    nextAppState.cursor->xpos = 0;
+                    nextAppState.cursor->ypos += 1;
+                }
+            }
+            nextAppState.selectedPiece->xpos = 16 * nextAppState.cursor->xpos;
+            nextAppState.selectedPiece->ypos = 16 * nextAppState.cursor->ypos;
+            removeFromList(currentAppState->selectedPiece, currentAppState->unusedList);
+        } else if (KEY_JUST_PRESSED(BUTTON_UP, keysPressedNow, keysPressedBefore)) {
+            nextAppState.selectedPiece = NULL;
+            nextAppState.cursor->ypos = 114;
+            nextAppState.inStash = 0;
+        }
+    } else {
+        if (KEY_JUST_PRESSED(BUTTON_A, keysPressedNow, keysPressedBefore)) {
+            if (currentAppState->selectedPiece) {
+                nextAppState.map[currentAppState->cursor->xpos][currentAppState->cursor->ypos] = currentAppState->selectedPiece;
+                addToList(currentAppState->selectedPiece, nextAppState.usedList);
+                nextAppState.nextLevel = isSolved(&nextAppState);
+                nextAppState.selectedPiece = currentAppState->unusedList->head;
+                nextAppState.cursor->xpos = 0;
+                nextAppState.cursor->ypos = 128;
+                nextAppState.inStash = 1;
+            } else {
+                Piece *curr = currentAppState->map[currentAppState->cursor->xpos][currentAppState->cursor->ypos];
+                if (curr) {
+                    nextAppState.selectedPiece = curr;
+                    nextAppState.map[currentAppState->cursor->xpos][currentAppState->cursor->ypos] = NULL;
+                    removeFromList(curr, nextAppState.usedList);
+                }
+            }
+        } else if (KEY_JUST_PRESSED(BUTTON_B, keysPressedNow, keysPressedBefore)) {
+            if (currentAppState->selectedPiece) {
+                addToList(currentAppState->selectedPiece, nextAppState.unusedList);
+                nextAppState.selectedPiece = nextAppState.unusedList->head;
+                nextAppState.cursor->xpos = 0;
+                nextAppState.cursor->ypos = 128;
+                nextAppState.inStash = 1;
+            } else {
+                nextAppState.selectedPiece = nextAppState.unusedList->head;
+                nextAppState.cursor->xpos = 0;
+                nextAppState.cursor->ypos = 128;
+                nextAppState.inStash = 1;
+            }
+        } else if (KEY_JUST_PRESSED(BUTTON_L, keysPressedNow, keysPressedBefore)) {
+            if (currentAppState->selectedPiece) {
+                rotatePiece(nextAppState.selectedPiece, 0);
+            }
+        } else if (KEY_JUST_PRESSED(BUTTON_R, keysPressedNow, keysPressedBefore)) {
+            if (currentAppState->selectedPiece) {
+                rotatePiece(nextAppState.selectedPiece, 1);
+            }
+        }
+    }
     return nextAppState;
 }

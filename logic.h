@@ -5,7 +5,7 @@
 
 
 
-typedef enum {HPIECE, VPIECE, XPIECE, LUPIECE, URPIECE, RDPIECE, DLPIECE, SOURCE, SINK} PieceType;
+typedef enum {HPIECE, VPIECE, XPIECE, LUPIECE, URPIECE, RDPIECE, DLPIECE, SOURCE, SINK, NONE} PieceType;
 typedef enum {DOWN, RIGHT, LEFT, UP} Direction;
 typedef struct {
     int xpos;
@@ -13,6 +13,7 @@ typedef struct {
 } Cursor;
 typedef struct Piece Piece;
 struct Piece {
+    int id;
     int xpos;
     int ypos;
     int inPlay;
@@ -22,6 +23,7 @@ struct Piece {
 };
 typedef struct {
     Piece *head;
+    Piece *tail;
 } PieceList;
 typedef struct {
     int sourcex;
@@ -37,10 +39,12 @@ typedef struct {
     PieceList *usedList;
     PieceList *unusedList;
     Piece *selectedPiece;
+    int inStash;
     Cursor *cursor;
     Level *currentLevel;
     int levelNum;
     Level *levels[20];
+    int nextLevel;
     /*
     * TA-TODO: Add any logical elements you need to keep track of in your app.
     *
