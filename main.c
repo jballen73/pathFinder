@@ -41,7 +41,7 @@ int main(void) {
             waitForVBlank();
             graphicsInit();
             // TA-TODO: Draw the start state here.
-            
+            fillScreenDMA(BLUE);
             state = START_WAIT_FOR_INPUT;
             break;
         case START_WAIT_FOR_INPUT:
@@ -79,9 +79,17 @@ int main(void) {
             undrawAppState(&currentAppState);
 
             // Draw the current state
-            // if (nextAppState.levelChange) {
-            //     fullDrawAppState(&nextAppState);
-            // }
+            if (nextAppState.nextLevel) {
+                nextAppState.levelNum += 1;
+                if (nextAppState.levelNum == nextAppState.numLevels) {
+                    hideSprites();
+                    state = START;
+                    break;
+                } else {
+                    loadLevel(&nextAppState);
+                    nextAppState.nextLevel = 0;
+                }
+            }
             drawAppState(&nextAppState);
 
             // Now set the current state as the next state for the next iter.

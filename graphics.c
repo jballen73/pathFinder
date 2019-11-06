@@ -1,6 +1,7 @@
 #include "graphics.h"
 #include "gba.h"
 #include "images/sprites.h"
+#include "images/background.h"
 #include "logic.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,7 +40,44 @@ void graphicsInit(void) {
     
 }
 void drawPiece(Piece *piece, int x, int y) {
-
+    shadow[piece->id].attr0 = y | SPRITES_PALETTE_TYPE | SOURCE_SPRITE_SHAPE;
+    shadow[piece->id].attr1 = x | SOURCE_SPRITE_SIZE;
+    switch(piece->type) {
+        case SOURCE:
+            shadow[piece->id].attr2 = SOURCE_PALETTE_ID | SOURCE_ID;
+            break;
+        case SINK:
+            shadow[piece->id].attr2 = SINK_PALETTE_ID | SINK_ID;
+            break;
+        case VPIECE:
+            shadow[piece->id].attr2 = VPIECE_PALETTE_ID | VPIECE_ID;
+            break;
+        case HPIECE:
+            shadow[piece->id].attr2 = HPIECE_PALETTE_ID | HPIECE_ID;
+            break;
+        case XPIECE:
+            shadow[piece->id].attr2 = XPIECE_PALETTE_ID | XPIECE_ID;
+            break;
+        case LUPIECE:
+            shadow[piece->id].attr2 = LUPIECE_PALETTE_ID | LUPIECE_ID;
+            break;
+        case URPIECE:
+            shadow[piece->id].attr2 = URPIECE_PALETTE_ID | URPIECE_ID;
+            break;
+        case RDPIECE:
+            shadow[piece->id].attr2 = RDPIECE_PALETTE_ID | RDPIECE_ID;
+            break;
+        case DLPIECE:
+            shadow[piece->id].attr2 = DLPIECE_PALETTE_ID | DLPIECE_ID;
+            break;
+        case NONE:
+            break;
+    }
+}
+void drawCursor(Cursor *cursor) {
+    shadow[127].attr0 = (cursor->ypos * 16) | SPRITES_PALETTE_TYPE | CURSOR_SPRITE_SHAPE;
+    shadow[127].attr1 = (cursor->xpos * 16) | CURSOR_SPRITE_SIZE;
+    shadow[127].attr2 = CURSOR_PALETTE_ID | CURSOR_ID;
 }
 void drawPieces(AppState *state) {
     Piece *curr = state->usedList->head;
@@ -90,6 +128,7 @@ static void drawSprites(void) {
 // including the background and whatnot.
 void fullDrawAppState(AppState *state) {
     // TA-TODO: IMPLEMENT.
+    drawFullScreenImageDMA(background);
     UNUSED(state);
 }
 
@@ -108,6 +147,8 @@ void drawAppState(AppState *state) {
 
        // state->levelChange--;
     //}
-    UNUSED(state);
+    drawPieces(state);
+    drawCursor(state->cursor);
+    drawSprites();
 }
 

@@ -16,7 +16,6 @@ struct Piece {
     int id;
     int xpos;
     int ypos;
-    int inPlay;
     PieceType type;
     Piece *next;
     Piece *prev;
@@ -30,12 +29,12 @@ typedef struct {
     int sourcey;
     int sinkx;
     int sinky;
-    int pieces[30];
+    const int *pieces;
+    int numPieces;
 } Level;
 typedef struct {
     // Store whether or not the game is over in this member:
     int gameOver;
-    Piece *map[15][7];
     PieceList *usedList;
     PieceList *unusedList;
     Piece *selectedPiece;
@@ -43,7 +42,7 @@ typedef struct {
     Cursor *cursor;
     Level *currentLevel;
     int levelNum;
-    Level *levels[20];
+    int numLevels;
     int nextLevel;
     /*
     * TA-TODO: Add any logical elements you need to keep track of in your app.
@@ -77,4 +76,5 @@ void initializeAppState(AppState *appState);
 AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 keysPressedNow);
 // If you have anything else you need accessible from outside the logic.c
 // file, you can add them here. You likely won't.
+void loadLevel(AppState *currentAppState);
 #endif
